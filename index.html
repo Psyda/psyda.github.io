@@ -3,1497 +3,312 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Psyda's Texture Channel Packer - Node Editor</title>
+    <title>Technical Artist Tools</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #1a1a1a;
-            color: #ffffff;
-            height: 100vh;
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #2d2d3a, #3a3a4a);
-            padding: 15px 30px;
-            border-bottom: 1px solid #444;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            z-index: 1000;
+            justify-content: center;
+            color: #e4e4e7;
+            overflow-x: hidden;
         }
-        
-        .header h1 {
-            font-size: 1.5em;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header {
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #60a5fa, #a78bfa, #34d399);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
-        .toolbar {
-            display: flex;
-            gap: 15px;
-            align-items: center;
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .tool-card {
+            background: rgba(20, 20, 35, 0.4);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
             transition: all 0.3s ease;
-            font-size: 0.9em;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-            color: white;
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(45deg, #4ecdc4, #44a08d);
-            color: white;
-        }
-        
-        .btn-add {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-        }
-        
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .main-container {
-            display: flex;
-            height: calc(100vh - 70px);
-        }
-        
-        .sidebar {
-            width: 300px;
-            background: #2a2a2a;
-            border-right: 1px solid #444;
-            overflow-y: auto;
-            padding: 20px;
-        }
-        
-        .node-editor {
-            flex: 1;
             position: relative;
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
-                linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+            overflow: hidden;
+            animation: fadeInUp 1s ease-out;
+            animation-delay: 0.2s;
+            animation-fill-mode: both;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-10px);
+            background: rgba(30, 30, 50, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(96, 165, 250, 0.3);
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .tool-card:hover::before {
+            left: 100%;
+        }
+
+        .tool-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .tool-card:hover .tool-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .tool-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .tool-description {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .tool-link {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
             overflow: hidden;
         }
-        
-        .grid-overlay {
-            position: absolute;
+
+        .tool-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .coming-soon {
+            background: rgba(10, 10, 20, 0.3);
+            opacity: 0.6;
+        }
+
+        .coming-soon .tool-link {
+            background: linear-gradient(45deg, #374151, #4b5563);
+            cursor: not-allowed;
+        }
+
+        .coming-soon .tool-link:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .footer {
+            margin-top: 4rem;
+            opacity: 0.7;
+            font-size: 0.9rem;
+            animation: fadeIn 1s ease-out 1s both;
+        }
+
+        .particles {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 20px 20px;
             pointer-events: none;
+            z-index: 1;
         }
-        
-        .node {
+
+        .particle {
             position: absolute;
-            background: linear-gradient(145deg, #3a3a4a, #2d2d3a);
-            border: 2px solid #555;
-            border-radius: 12px;
-            min-width: 200px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            user-select: none;
-            cursor: move;
-        }
-        
-        .node.selected {
-            border-color: #4ecdc4;
-            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
-        }
-        
-        .node-header {
-            background: linear-gradient(90deg, #4a4a5a, #3a3a4a);
-            padding: 12px 16px;
-            border-radius: 10px 10px 0 0;
-            font-weight: bold;
-            text-align: center;
-            border-bottom: 1px solid #555;
-        }
-        
-        .node-content {
-            padding: 16px;
-        }
-        
-        .input-node .node-header {
-            background: linear-gradient(90deg, #4a5a4a, #3a4a3a);
-        }
-        
-        .output-node .node-header {
-            background: linear-gradient(90deg, #5a4a4a, #4a3a3a);
-        }
-        
-        .socket {
-            width: 16px;
-            height: 16px;
+            width: 4px;
+            height: 4px;
+            background: rgba(96, 165, 250, 0.2);
             border-radius: 50%;
-            position: absolute;
-            cursor: pointer;
-            border: 2px solid #666;
-            transition: all 0.2s ease;
+            animation: float 6s infinite ease-in-out;
         }
-        
-        .socket:hover {
-            transform: scale(1.3);
-            border-color: #fff;
-        }
-        
-        .socket.snap-target {
-            transform: scale(1.6);
-            border-color: #4ecdc4;
-            box-shadow: 0 0 20px rgba(78, 205, 196, 0.8);
-            z-index: 1000;
-        }
-        
-        .socket.output {
-            right: -8px;
-        }
-        
-        .socket.input {
-            left: -8px;
-        }
-        
-        .socket.red { background: #ff4444; }
-        .socket.green { background: #44ff44; }
-        .socket.blue { background: #4444ff; }
-        .socket.alpha { background: #ffffff; }
-        .socket.rgb { background: linear-gradient(45deg, #ff4444, #44ff44, #4444ff); }
-        
-        .channel-preview {
-            display: flex;
-            gap: 5px;
-            margin: 10px 0;
-            flex-wrap: wrap;
-        }
-        
-        .channel-btn {
-            padding: 4px 8px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            background: #3a3a4a;
-            color: white;
-            cursor: pointer;
-            font-size: 0.75em;
-            transition: all 0.2s ease;
-        }
-        
-        .channel-btn:hover {
-            background: #4a4a5a;
-            border-color: #4ecdc4;
-        }
-        
-        .channel-btn.active {
-            background: #4ecdc4;
-            border-color: #4ecdc4;
-            color: #000;
-        }
-        
-        .export-buttons {
-            display: flex;
-            gap: 5px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .mini-btn {
-            padding: 3px 6px;
-            border: none;
-            border-radius: 3px;
-            background: #5a5a6a;
-            color: white;
-            cursor: pointer;
-            font-size: 0.7em;
-            transition: all 0.2s ease;
-        }
-        
-        .mini-btn:hover {
-            background: #6a6a7a;
-        }
-        
-        .socket-label {
-            display: flex;
-            align-items: center;
-            margin: 8px 0;
-            position: relative;
-            font-size: 0.9em;
-        }
-        
-        .socket-label.output {
-            justify-content: flex-end;
-            padding-right: 20px;
-        }
-        
-        .socket-label.input {
-            padding-left: 20px;
-        }
-        
-        .connection {
-            position: absolute;
-            pointer-events: none;
-            z-index: 100;
-        }
-        
-        .connection-line {
-            stroke: #4ecdc4;
-            stroke-width: 3;
-            fill: none;
-            filter: drop-shadow(0 0 4px rgba(78, 205, 196, 0.5));
-        }
-        
-        .preview-canvas {
-            width: 150px;
-            height: 150px;
-            border-radius: 8px;
-            border: 2px solid #555;
-            margin: 10px 0;
-        }
-        
-        .file-input-wrapper {
-            margin: 10px 0;
-        }
-        
-        .file-input {
-            display: none;
-        }
-        
-        .file-input-label {
-            display: block;
-            padding: 8px 12px;
-            background: #4a4a5a;
-            border-radius: 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px dashed #666;
-            font-size: 0.85em;
-        }
-        
-        .file-input-label:hover {
-            background: #5a5a6a;
-            border-color: #4ecdc4;
-        }
-        
-        .sidebar-section {
-            margin-bottom: 25px;
-        }
-        
-        .sidebar-section h3 {
-            color: #4ecdc4;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
-        
-        .node-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .add-node-btn {
-            width: 100%;
-            padding: 10px;
-            background: #3a3a4a;
-            border: 1px solid #555;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9em;
-        }
-        
-        .add-node-btn:hover {
-            background: #4a4a5a;
-            border-color: #4ecdc4;
-        }
-        
-        .output-preview {
-            text-align: center;
-        }
-        
-        .output-info {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 0.85em;
-        }
-        
-        svg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 50;
-        }
-        
-        .temp-connection {
-            stroke: #ff6b6b;
-            stroke-width: 3;
-            stroke-dasharray: 5,5;
-            fill: none;
-            animation: dash 1s linear infinite;
-        }
-        
-        @keyframes dash {
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
             to {
-                stroke-dashoffset: -10;
+                opacity: 1;
+                transform: translateY(0);
             }
         }
-        
-        .context-menu {
-            position: absolute;
-            background: #2a2a2a;
-            border: 1px solid #555;
-            border-radius: 6px;
-            padding: 5px 0;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            min-width: 150px;
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        
-        .context-menu-item {
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: background 0.2s ease;
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
         }
-        
-        .context-menu-item:hover {
-            background: #3a3a4a;
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .tool-card {
+                padding: 2rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🎨 Psyda's Texture Node Editor</h1>
-        <div class="toolbar">
-            <button id="packBtn" class="btn btn-primary">🔄 Pack Texture</button>
-            <button id="downloadBtn" class="btn btn-secondary" style="display: none;">💾 Download PNG</button>
-            <button id="clearBtn" class="btn btn-add">🗑️ Clear All</button>
-        </div>
-    </div>
+    <div class="particles" id="particles"></div>
     
-    <div class="main-container">
-        <div class="sidebar">
-            <div class="sidebar-section">
-                <h3>📥 Add Nodes</h3>
-                <div class="node-list">
-                    <button class="add-node-btn" data-node-type="input">+ Image Input</button>
-                    <button class="add-node-btn" data-node-type="output">+ RGBA Output</button>
-                </div>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Technical Artist Tools</h1>
+            <p class="subtitle">Creative Solutions & Workflows</p>
+        </div>
+
+        <div class="tools-grid">
+            <div class="tool-card">
+                <div class="tool-icon">🎨</div>
+                <h3 class="tool-title">TexturePacker</h3>
+                <p class="tool-description">
+                    Streamline your texture workflow with intelligent packing algorithms and optimization tools designed for game assets and real-time rendering.
+                </p>
+                <a href="TexturePacker.html" class="tool-link">Launch Tool</a>
             </div>
-            
-            <div class="sidebar-section">
-                <h3>📤 Output Preview</h3>
-                <div class="output-preview">
-                    <div class="output-info">
-                        <div id="outputSize">No output connected</div>
-                    </div>
-                    <canvas id="outputCanvas" class="preview-canvas" width="150" height="150"></canvas>
-                </div>
+
+            <div class="tool-card coming-soon">
+                <div class="tool-icon">⚡</div>
+                <h3 class="tool-title">Shader Generator</h3>
+                <p class="tool-description">
+                    Visual node-based shader creation tool for rapid prototyping and material development across multiple rendering pipelines.
+                </p>
+                <a href="#" class="tool-link">Coming Soon</a>
             </div>
-            
-            <div class="sidebar-section">
-                <h3>💡 Tips</h3>
-                <div style="font-size: 0.8em; line-height: 1.4; color: #ccc;">
-                    • Drag from output sockets to input sockets<br>
-                    • Right-click to delete connections<br>
-                    • RGB output gives luminance value<br>
-                    • Perfect for game texture optimization
-                </div>
+
+            <div class="tool-card coming-soon">
+                <div class="tool-icon">🔧</div>
+                <h3 class="tool-title">Asset Pipeline</h3>
+                <p class="tool-description">
+                    Automated asset processing and optimization toolkit for efficient content delivery and performance optimization.
+                </p>
+                <a href="#" class="tool-link">Coming Soon</a>
+            </div>
+
+            <div class="tool-card coming-soon">
+                <div class="tool-icon">📊</div>
+                <h3 class="tool-title">Performance Profiler</h3>
+                <p class="tool-description">
+                    Real-time performance analysis and bottleneck identification for graphics and rendering optimization workflows.
+                </p>
+                <a href="#" class="tool-link">Coming Soon</a>
             </div>
         </div>
-        
-        <div class="node-editor" id="nodeEditor">
-            <div class="grid-overlay"></div>
-            <svg id="connectionSvg"></svg>
+
+        <div class="footer">
+            <p>Crafted with precision for the technical artist workflow</p>
         </div>
     </div>
 
     <script>
-        class NodeEditor {
-            constructor() {
-                this.nodes = new Map();
-                this.connections = new Map();
-                this.nodeCounter = 0;
-                this.isDragging = false;
-                this.isConnecting = false;
-                this.isReconnecting = false;
-                this.selectedNode = null;
-                this.connectionStart = null;
-                this.originalConnectionId = null;
-                this.tempLine = null;
-                this.currentSnapTarget = null;
-                
-                this.nodeEditor = document.getElementById('nodeEditor');
-                this.connectionSvg = document.getElementById('connectionSvg');
-                
-                this.initializeEventListeners();
-                this.createInitialNodes();
-            }
-            
-            initializeEventListeners() {
-                // Add node buttons
-                document.querySelectorAll('.add-node-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const nodeType = e.target.dataset.nodeType;
-                        this.addNode(nodeType, 100 + Math.random() * 200, 100 + Math.random() * 200);
-                    });
-                });
-                
-                // Toolbar buttons
-                document.getElementById('packBtn').addEventListener('click', () => this.packTexture());
-                document.getElementById('clearBtn').addEventListener('click', () => this.clearAll());
-                
-                // Mouse events for connecting
-                this.nodeEditor.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-                this.nodeEditor.addEventListener('mouseup', (e) => this.handleMouseUp(e));
-                this.nodeEditor.addEventListener('contextmenu', (e) => this.handleRightClick(e));
-            }
-            
-            createInitialNodes() {
-                // Create an initial setup
-                this.addNode('input', 50, 100);
-                this.addNode('output', 600, 200);
-            }
-            
-            addNode(type, x, y) {
-                const nodeId = `node_${this.nodeCounter++}`;
-                const nodeElement = this.createNodeElement(type, nodeId, x, y);
-                
-                this.nodeEditor.appendChild(nodeElement);
-                
-                const nodeData = {
-                    id: nodeId,
-                    type: type,
-                    element: nodeElement,
-                    x: x,
-                    y: y,
-                    image: null,
-                    canvas: null
-                };
-                
-                this.nodes.set(nodeId, nodeData);
-                
-                // Make node draggable
-                this.makeNodeDraggable(nodeElement, nodeData);
-                
-                return nodeData;
-            }
-            
-            createNodeElement(type, nodeId, x, y) {
-                const node = document.createElement('div');
-                node.className = `node ${type}-node`;
-                node.style.left = `${x}px`;
-                node.style.top = `${y}px`;
-                node.dataset.nodeId = nodeId;
-                
-                if (type === 'input') {
-                    node.innerHTML = `
-                        <div class="node-header">Image Input</div>
-                        <div class="node-content">
-                            <div class="file-input-wrapper">
-                                <input type="file" id="file_${nodeId}" class="file-input" accept="image/*">
-                                <label for="file_${nodeId}" class="file-input-label">Load Image</label>
-                            </div>
-                            <canvas class="preview-canvas" width="150" height="150"></canvas>
-                            <div class="socket-label output">
-                                <span>RGB</span>
-                                <div class="socket output rgb" data-socket="rgb" data-node="${nodeId}"></div>
-                            </div>
-                            <div class="socket-label output">
-                                <span>R</span>
-                                <div class="socket output red" data-socket="r" data-node="${nodeId}"></div>
-                            </div>
-                            <div class="socket-label output">
-                                <span>G</span>
-                                <div class="socket output green" data-socket="g" data-node="${nodeId}"></div>
-                            </div>
-                            <div class="socket-label output">
-                                <span>B</span>
-                                <div class="socket output blue" data-socket="b" data-node="${nodeId}"></div>
-                            </div>
-                            <div class="socket-label output">
-                                <span>A</span>
-                                <div class="socket output alpha" data-socket="a" data-node="${nodeId}"></div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Setup file input
-                    setTimeout(() => {
-                        const fileInput = node.querySelector('.file-input');
-                        fileInput.addEventListener('change', (e) => this.handleImageLoad(e, nodeId));
-                    }, 0);
-                } else if (type === 'output') {
-                    node.innerHTML = `
-                        <div class="node-header">RGBA Output</div>
-                        <div class="node-content">
-                            <canvas class="preview-canvas" width="150" height="150"></canvas>
-                            <div class="channel-preview">
-                                <button class="channel-btn active" data-preview="rgba">RGBA</button>
-                                <button class="channel-btn" data-preview="r">R</button>
-                                <button class="channel-btn" data-preview="g">G</button>
-                                <button class="channel-btn" data-preview="b">B</button>
-                                <button class="channel-btn" data-preview="a">A</button>
-                            </div>
-                            <div class="socket-label input">
-                                <div class="socket input red" data-socket="r" data-node="${nodeId}"></div>
-                                <span>R</span>
-                            </div>
-                            <div class="socket-label input">
-                                <div class="socket input green" data-socket="g" data-node="${nodeId}"></div>
-                                <span>G</span>
-                            </div>
-                            <div class="socket-label input">
-                                <div class="socket input blue" data-socket="b" data-node="${nodeId}"></div>
-                                <span>B</span>
-                            </div>
-                            <div class="socket-label input">
-                                <div class="socket input alpha" data-socket="a" data-node="${nodeId}"></div>
-                                <span>A</span>
-                            </div>
-                            <div class="export-buttons">
-                                <button class="mini-btn" data-export="rgba">📥 RGBA</button>
-                                <button class="mini-btn" data-export="r">📥 R</button>
-                                <button class="mini-btn" data-export="g">📥 G</button>
-                                <button class="mini-btn" data-export="b">📥 B</button>
-                                <button class="mini-btn" data-export="a">📥 A</button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Setup preview buttons
-                    setTimeout(() => {
-                        node.querySelectorAll('.channel-btn').forEach(btn => {
-                            btn.addEventListener('click', (e) => {
-                                // Update button states
-                                node.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
-                                btn.classList.add('active');
-                                
-                                // Update preview
-                                this.updateOutputNodePreview(nodeId, btn.dataset.preview);
-                            });
-                        });
-                        
-                        // Setup export buttons
-                        node.querySelectorAll('.mini-btn').forEach(btn => {
-                            btn.addEventListener('click', (e) => {
-                                this.exportChannel(nodeId, btn.dataset.export);
-                            });
-                        });
-                    }, 0);
-                }
-                
-                // Add socket event listeners
-                setTimeout(() => {
-                    node.querySelectorAll('.socket').forEach(socket => {
-                        socket.addEventListener('mousedown', (e) => this.handleSocketClick(e));
-                    });
-                }, 0);
-                
-                return node;
-            }
-            
-            makeNodeDraggable(element, nodeData) {
-                let isDragging = false;
-                let startX, startY, offsetX, offsetY;
-                
-                const header = element.querySelector('.node-header');
-                
-                header.addEventListener('mousedown', (e) => {
-                    isDragging = true;
-                    this.selectedNode = nodeData;
-                    
-                    // Remove selection from other nodes
-                    document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
-                    element.classList.add('selected');
-                    
-                    startX = e.clientX;
-                    startY = e.clientY;
-                    offsetX = nodeData.x;
-                    offsetY = nodeData.y;
-                    
-                    e.preventDefault();
-                });
-                
-                document.addEventListener('mousemove', (e) => {
-                    if (!isDragging) return;
-                    
-                    const deltaX = e.clientX - startX;
-                    const deltaY = e.clientY - startY;
-                    
-                    nodeData.x = offsetX + deltaX;
-                    nodeData.y = offsetY + deltaY;
-                    
-                    element.style.left = `${nodeData.x}px`;
-                    element.style.top = `${nodeData.y}px`;
-                    
-                    this.updateConnections();
-                });
-                
-                document.addEventListener('mouseup', () => {
-                    isDragging = false;
-                });
-            }
-            
-            handleImageLoad(event, nodeId) {
-                const file = event.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const nodeData = this.nodes.get(nodeId);
-                        nodeData.image = img;
-                        
-                        // Update preview canvas
-                        const canvas = nodeData.element.querySelector('.preview-canvas');
-                        const ctx = canvas.getContext('2d');
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        
-                        // Calculate aspect ratio
-                        const aspectRatio = img.width / img.height;
-                        let drawWidth = canvas.width;
-                        let drawHeight = canvas.height;
-                        
-                        if (aspectRatio > 1) {
-                            drawHeight = canvas.width / aspectRatio;
-                        } else {
-                            drawWidth = canvas.height * aspectRatio;
-                        }
-                        
-                        const offsetX = (canvas.width - drawWidth) / 2;
-                        const offsetY = (canvas.height - drawHeight) / 2;
-                        
-                        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-                        
-                        // Update file label
-                        const label = nodeData.element.querySelector('.file-input-label');
-                        label.textContent = `${file.name} (${img.width}x${img.height})`;
-                        
-                        // Update any connected outputs
-                        this.updateConnectedOutputs();
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-            
-            handleSocketClick(event) {
-                event.stopPropagation();
-                const socket = event.target;
-                const isOutput = socket.classList.contains('output');
-                const nodeId = socket.dataset.node;
-                const node = this.nodes.get(nodeId);
-                
-                // Only allow starting connections from Image Input node outputs
-                if (isOutput && !this.isConnecting && node.type === 'input') {
-                    // Start connection from Image Input output
-                    this.isConnecting = true;
-                    this.connectionStart = {
-                        socket: socket,
-                        nodeId: socket.dataset.node,
-                        socketType: socket.dataset.socket
-                    };
-                    
-                    // Create temporary line
-                    this.createTempConnection(event);
-                } else if (!isOutput && !this.isConnecting && node.type === 'output') {
-                    // Check if this input socket has an existing connection
-                    const existingConnection = this.findConnectionToInput(nodeId, socket.dataset.socket);
-                    
-                    if (existingConnection) {
-                        // Pick up the existing connection
-                        this.pickupExistingConnection(existingConnection, event);
-                    }
-                } else if (!isOutput && this.isConnecting && node.type === 'output') {
-                    // Complete connection to Output node input
-                    this.completeConnection(socket);
-                } else if (this.isConnecting) {
-                    // Invalid target, cancel connection
-                    this.cancelConnection();
-                }
-            }
-            
-            findConnectionToInput(nodeId, socketType) {
-                let foundConnection = null;
-                this.connections.forEach((connection, id) => {
-                    if (connection.to.nodeId === nodeId && connection.to.socket === socketType) {
-                        foundConnection = { id, connection };
-                    }
-                });
-                return foundConnection;
-            }
-            
-            pickupExistingConnection(connectionData, event) {
-                const { id, connection } = connectionData;
-                
-                // Find the source socket
-                const sourceNode = this.nodes.get(connection.from.nodeId);
-                if (!sourceNode) return;
-                
-                const sourceSocket = sourceNode.element.querySelector(`[data-socket="${connection.from.socket}"].output`);
-                if (!sourceSocket) return;
-                
-                // Remove the visual connection but keep the data temporarily
-                const connectionLine = document.getElementById(id);
-                if (connectionLine) {
-                    connectionLine.style.opacity = '0.3'; // Fade it out but don't remove yet
-                }
-                
-                // Start a new connection from the source
-                this.isConnecting = true;
-                this.isReconnecting = true;
-                this.originalConnectionId = id;
-                this.connectionStart = {
-                    socket: sourceSocket,
-                    nodeId: connection.from.nodeId,
-                    socketType: connection.from.socket
-                };
-                
-                // Create temporary line from the mouse position
-                this.createTempConnection(event);
-                
-                // Update socket states
-                const targetSocket = event.target;
-                targetSocket.classList.remove('connected');
-                
-                // Don't remove the connection yet - we'll do that when completing or canceling
-            }
-            
-            createTempConnection(event) {
-                const rect = this.nodeEditor.getBoundingClientRect();
-                const startX = event.clientX - rect.left;
-                const startY = event.clientY - rect.top;
-                
-                this.tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                this.tempLine.classList.add('temp-connection');
-                this.connectionSvg.appendChild(this.tempLine);
-                
-                this.updateTempConnection(startX, startY, startX, startY);
-            }
-            
-            updateTempConnection(x1, y1, x2, y2) {
-                if (!this.tempLine) return;
-                
-                const dx = x2 - x1;
-                const cp1x = x1 + dx * 0.5;
-                const cp2x = x2 - dx * 0.5;
-                
-                const path = `M ${x1} ${y1} C ${cp1x} ${y1} ${cp2x} ${y2} ${x2} ${y2}`;
-                this.tempLine.setAttribute('d', path);
-            }
-            
-            handleMouseMove(event) {
-                if (this.isConnecting && this.tempLine) {
-                    const rect = this.nodeEditor.getBoundingClientRect();
-                    const mouseX = event.clientX - rect.left;
-                    const mouseY = event.clientY - rect.top;
-                    
-                    const startSocket = this.connectionStart.socket;
-                    const startRect = startSocket.getBoundingClientRect();
-                    const editorRect = this.nodeEditor.getBoundingClientRect();
-                    const startX = startRect.left + startRect.width/2 - editorRect.left;
-                    const startY = startRect.top + startRect.height/2 - editorRect.top;
-                    
-                    // Check for nearby input sockets for magnetic snapping
-                    const snapTarget = this.findSnapTarget(mouseX, mouseY);
-                    
-                    // Clear previous snap targets
-                    document.querySelectorAll('.socket.snap-target').forEach(s => {
-                        s.classList.remove('snap-target');
-                    });
-                    
-                    let targetX = mouseX;
-                    let targetY = mouseY;
-                    
-                    if (snapTarget) {
-                        snapTarget.classList.add('snap-target');
-                        const targetRect = snapTarget.getBoundingClientRect();
-                        targetX = targetRect.left + targetRect.width/2 - editorRect.left;
-                        targetY = targetRect.top + targetRect.height/2 - editorRect.top;
-                    }
-                    
-                    this.updateTempConnection(startX, startY, targetX, targetY);
-                    this.currentSnapTarget = snapTarget;
-                }
-            }
-            
-            findSnapTarget(mouseX, mouseY) {
-                const snapDistance = 40; // Increased snap distance
-                let closestSocket = null;
-                let closestDistance = snapDistance;
-                
-                // Only find input sockets on output nodes
-                document.querySelectorAll('.socket.input').forEach(socket => {
-                    const nodeId = socket.dataset.node;
-                    const node = this.nodes.get(nodeId);
-                    
-                    // Only snap to output node inputs
-                    if (!node || node.type !== 'output') return;
-                    
-                    const rect = socket.getBoundingClientRect();
-                    const editorRect = this.nodeEditor.getBoundingClientRect();
-                    const socketX = rect.left + rect.width/2 - editorRect.left;
-                    const socketY = rect.top + rect.height/2 - editorRect.top;
-                    
-                    const distance = Math.sqrt(
-                        Math.pow(mouseX - socketX, 2) + Math.pow(mouseY - socketY, 2)
-                    );
-                    
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestSocket = socket;
-                    }
-                });
-                
-                return closestSocket;
-            }
-            
-            handleMouseUp(event) {
-                if (this.isConnecting) {
-                    // Check if we're over a snap target
-                    if (this.currentSnapTarget) {
-                        this.completeConnection(this.currentSnapTarget);
-                    } else if (this.isReconnecting) {
-                        // If we're reconnecting and drop far away, disconnect the original
-                        this.disconnectOriginalConnection();
-                    } else {
-                        this.cancelConnection();
-                    }
-                    
-                    // Clear snap targets
-                    document.querySelectorAll('.socket.snap-target').forEach(s => {
-                        s.classList.remove('snap-target');
-                    });
-                    this.currentSnapTarget = null;
-                }
-            }
-            
-            disconnectOriginalConnection() {
-                if (this.originalConnectionId) {
-                    // Remove the original connection permanently
-                    this.removeConnection(this.originalConnectionId, true);
-                }
-                
-                // Clean up reconnection state
-                this.isConnecting = false;
-                this.isReconnecting = false;
-                this.connectionStart = null;
-                this.originalConnectionId = null;
-                if (this.tempLine) {
-                    this.tempLine.remove();
-                    this.tempLine = null;
-                }
-                
-                // Update outputs since we removed a connection
-                this.updateConnectedOutputs();
-            }
-            
-            completeConnection(targetSocket) {
-                if (!this.isConnecting || !this.connectionStart) return;
-                
-                const sourceNodeId = this.connectionStart.nodeId;
-                const sourceSocket = this.connectionStart.socketType;
-                const targetNodeId = targetSocket.dataset.node;
-                const targetSocketType = targetSocket.dataset.socket;
-                
-                // Validate connection (Image Input -> Output node)
-                const sourceNode = this.nodes.get(sourceNodeId);
-                const targetNode = this.nodes.get(targetNodeId);
-                
-                if (!sourceNode || !targetNode || sourceNode.type !== 'input' || targetNode.type !== 'output') {
-                    this.cancelConnection();
-                    return;
-                }
-                
-                // If we're reconnecting, remove the original connection first
-                if (this.isReconnecting && this.originalConnectionId) {
-                    this.removeConnection(this.originalConnectionId, false); // Don't update outputs yet
-                }
-                
-                // Remove any existing connection to this input
-                this.removeConnectionsToInput(targetNodeId, targetSocketType);
-                
-                // Create new connection
-                const connectionId = `${sourceNodeId}_${sourceSocket}_to_${targetNodeId}_${targetSocketType}`;
-                this.connections.set(connectionId, {
-                    from: { nodeId: sourceNodeId, socket: sourceSocket },
-                    to: { nodeId: targetNodeId, socket: targetSocketType }
-                });
-                
-                // Add visual connection
-                this.drawConnection(connectionId);
-                
-                // Update socket states
-                this.connectionStart.socket.classList.add('connected');
-                targetSocket.classList.add('connected');
-                
-                this.cancelConnection();
-                this.updateConnectedOutputs();
-            }
-            
-            cancelConnection() {
-                // If we were reconnecting and cancel, restore the original connection
-                if (this.isReconnecting && this.originalConnectionId) {
-                    const connectionLine = document.getElementById(this.originalConnectionId);
-                    if (connectionLine) {
-                        connectionLine.style.opacity = '1'; // Restore visibility
-                    }
-                    
-                    // Restore socket states
-                    const connection = this.connections.get(this.originalConnectionId);
-                    if (connection) {
-                        const targetNode = this.nodes.get(connection.to.nodeId);
-                        if (targetNode) {
-                            const targetSocket = targetNode.element.querySelector(`[data-socket="${connection.to.socket}"].input`);
-                            if (targetSocket) {
-                                targetSocket.classList.add('connected');
-                            }
-                        }
-                    }
-                }
-                
-                this.isConnecting = false;
-                this.isReconnecting = false;
-                this.connectionStart = null;
-                this.originalConnectionId = null;
-                if (this.tempLine) {
-                    this.tempLine.remove();
-                    this.tempLine = null;
-                }
-            }
-            
-            removeConnectionsToInput(nodeId, socketType) {
-                const toRemove = [];
-                this.connections.forEach((connection, id) => {
-                    if (connection.to.nodeId === nodeId && connection.to.socket === socketType) {
-                        toRemove.push(id);
-                    }
-                });
-                
-                toRemove.forEach(id => {
-                    this.removeConnection(id);
-                });
-            }
-            
-            removeConnection(connectionId, updateOutputs = true) {
-                const connection = this.connections.get(connectionId);
-                if (!connection) return;
-                
-                // Remove visual line
-                const line = document.getElementById(connectionId);
-                if (line) line.remove();
-                
-                // Update socket states
-                const sourceNode = this.nodes.get(connection.from.nodeId);
-                const targetNode = this.nodes.get(connection.to.nodeId);
-                
-                if (sourceNode) {
-                    const sourceSocket = sourceNode.element.querySelector(`[data-socket="${connection.from.socket}"]`);
-                    if (sourceSocket) sourceSocket.classList.remove('connected');
-                }
-                
-                if (targetNode) {
-                    const targetSocket = targetNode.element.querySelector(`[data-socket="${connection.to.socket}"]`);
-                    if (targetSocket) targetSocket.classList.remove('connected');
-                }
-                
-                this.connections.delete(connectionId);
-                if (updateOutputs) {
-                    this.updateConnectedOutputs();
-                }
-            }
-            
-            drawConnection(connectionId) {
-                const connection = this.connections.get(connectionId);
-                if (!connection) return;
-                
-                const sourceNode = this.nodes.get(connection.from.nodeId);
-                const targetNode = this.nodes.get(connection.to.nodeId);
-                
-                if (!sourceNode || !targetNode) return;
-                
-                const sourceSockets = sourceNode.element.querySelectorAll(`[data-socket="${connection.from.socket}"]`);
-                const targetSockets = targetNode.element.querySelectorAll(`[data-socket="${connection.to.socket}"]`);
-                
-                if (sourceSockets.length === 0 || targetSockets.length === 0) return;
-                
-                const sourceSocket = sourceSockets[0];
-                const targetSocket = targetSockets[0];
-                
-                const sourceRect = sourceSocket.getBoundingClientRect();
-                const targetRect = targetSocket.getBoundingClientRect();
-                const editorRect = this.nodeEditor.getBoundingClientRect();
-                
-                const x1 = sourceRect.left + sourceRect.width/2 - editorRect.left;
-                const y1 = sourceRect.top + sourceRect.height/2 - editorRect.top;
-                const x2 = targetRect.left + targetRect.width/2 - editorRect.left;
-                const y2 = targetRect.top + targetRect.height/2 - editorRect.top;
-                
-                const dx = x2 - x1;
-                const cp1x = x1 + dx * 0.5;
-                const cp2x = x2 - dx * 0.5;
-                
-                const path = `M ${x1} ${y1} C ${cp1x} ${y1} ${cp2x} ${y2} ${x2} ${y2}`;
-                
-                let line = document.getElementById(connectionId);
-                if (!line) {
-                    line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    line.id = connectionId;
-                    line.classList.add('connection-line');
-                    line.style.cursor = 'pointer';
-                    line.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        this.removeConnection(connectionId);
-                    });
-                    this.connectionSvg.appendChild(line);
-                }
-                
-                line.setAttribute('d', path);
-            }
-            
-            updateConnections() {
-                this.connections.forEach((connection, id) => {
-                    this.drawConnection(id);
-                });
-            }
-            
-            updateConnectedOutputs() {
-                // Find all output nodes and update them
-                this.nodes.forEach(node => {
-                    if (node.type === 'output') {
-                        this.updateOutputNode(node);
-                    }
-                });
-            }
-            
-            updateOutputNode(outputNode) {
-                const canvas = outputNode.element.querySelector('.preview-canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Clear canvas
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Get connected inputs
-                const channels = { r: null, g: null, b: null, a: null };
-                
-                this.connections.forEach(connection => {
-                    if (connection.to.nodeId === outputNode.id) {
-                        const sourceNode = this.nodes.get(connection.from.nodeId);
-                        if (sourceNode && sourceNode.image) {
-                            channels[connection.to.socket] = {
-                                image: sourceNode.image,
-                                sourceChannel: connection.from.socket
-                            };
-                        }
-                    }
-                });
-                
-                // If we have any channels connected, create the output
-                const hasConnections = Object.values(channels).some(ch => ch !== null);
-                if (!hasConnections) {
-                    // Clear the output canvas if no connections
-                    if (outputNode.outputCanvas) {
-                        outputNode.outputCanvas = null;
-                    }
-                    return;
-                }
-                
-                // Find the largest image dimensions
-                let maxWidth = 256, maxHeight = 256;
-                Object.values(channels).forEach(ch => {
-                    if (ch && ch.image) {
-                        maxWidth = Math.max(maxWidth, ch.image.width);
-                        maxHeight = Math.max(maxHeight, ch.image.height);
-                    }
-                });
-                
-                // Create output canvas
-                const outputCanvas = document.createElement('canvas');
-                outputCanvas.width = maxWidth;
-                outputCanvas.height = maxHeight;
-                const outputCtx = outputCanvas.getContext('2d');
-                
-                try {
-                    // Process each channel separately for better performance
-                    const channelData = {};
-                    
-                    // Pre-process each connected channel
-                    ['r', 'g', 'b', 'a'].forEach(channelName => {
-                        const connection = channels[channelName];
-                        if (connection && connection.image) {
-                            channelData[channelName] = this.extractChannelData(
-                                connection.image,
-                                connection.sourceChannel,
-                                maxWidth,
-                                maxHeight
-                            );
-                        }
-                    });
-                    
-                    // Create final image data
-                    const outputImageData = outputCtx.createImageData(maxWidth, maxHeight);
-                    const data = outputImageData.data;
-                    
-                    // Combine channels
-                    for (let i = 0; i < maxWidth * maxHeight; i++) {
-                        const pixelIndex = i * 4;
-                        
-                        // Red channel
-                        data[pixelIndex] = channelData.r ? channelData.r[i] : 0;
-                        
-                        // Green channel
-                        data[pixelIndex + 1] = channelData.g ? channelData.g[i] : 0;
-                        
-                        // Blue channel
-                        data[pixelIndex + 2] = channelData.b ? channelData.b[i] : 0;
-                        
-                        // Alpha channel
-                        data[pixelIndex + 3] = channelData.a ? channelData.a[i] : 255;
-                    }
-                    
-                    // Draw to output canvas
-                    outputCtx.putImageData(outputImageData, 0, 0);
-                    
-                    // Store the full resolution data for export
-                    outputNode.outputCanvas = outputCanvas;
-                    outputNode.outputChannels = channels;
-                    
-                    // Update the current preview (check which button is active)
-                    const activeBtn = outputNode.element.querySelector('.channel-btn.active');
-                    const previewMode = activeBtn ? activeBtn.dataset.preview : 'rgba';
-                    this.updateOutputNodePreview(outputNode.id, previewMode);
-                    
-                    // Update sidebar preview
-                    this.updateSidebarPreview(outputNode);
-                    
-                } catch (error) {
-                    console.error('Error updating output node:', error);
-                    // Clear on error
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                }
-            }
-            
-            extractChannelData(image, sourceChannel, targetWidth, targetHeight) {
-                // Create cache key
-                const cacheKey = `${image.src}_${sourceChannel}_${targetWidth}_${targetHeight}`;
-                
-                if (!this.channelCache) {
-                    this.channelCache = new Map();
-                }
-                
-                if (this.channelCache.has(cacheKey)) {
-                    return this.channelCache.get(cacheKey);
-                }
-                
-                // Create temporary canvas for this image
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = targetWidth;
-                tempCanvas.height = targetHeight;
-                const tempCtx = tempCanvas.getContext('2d');
-                
-                // Draw and scale the image
-                tempCtx.drawImage(image, 0, 0, targetWidth, targetHeight);
-                const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
-                const sourceData = imageData.data;
-                
-                const channelData = new Uint8ClampedArray(targetWidth * targetHeight);
-                
-                if (sourceChannel === 'rgb') {
-                    // For full RGB, use luminance
-                    for (let i = 0; i < sourceData.length; i += 4) {
-                        const luminance = Math.round(0.299 * sourceData[i] + 0.587 * sourceData[i + 1] + 0.114 * sourceData[i + 2]);
-                        channelData[i / 4] = luminance;
-                    }
-                } else {
-                    // Extract specific channel
-                    const channelIndex = { 'r': 0, 'g': 1, 'b': 2, 'a': 3 }[sourceChannel];
-                    for (let i = 0; i < sourceData.length; i += 4) {
-                        channelData[i / 4] = sourceData[i + channelIndex];
-                    }
-                }
-                
-                // Cache the result
-                this.channelCache.set(cacheKey, channelData);
-                return channelData;
-            }
-            
-            updateOutputNodePreview(nodeId, previewMode) {
-                const node = this.nodes.get(nodeId);
-                if (!node || !node.outputCanvas) return;
-                
-                const canvas = node.element.querySelector('.preview-canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Create preview based on mode
-                const previewCanvas = this.createChannelPreview(node.outputCanvas, previewMode);
-                
-                // Scale to preview canvas
-                const aspectRatio = previewCanvas.width / previewCanvas.height;
-                let drawWidth = canvas.width;
-                let drawHeight = canvas.height;
-                
-                if (aspectRatio > 1) {
-                    drawHeight = canvas.width / aspectRatio;
-                } else {
-                    drawWidth = canvas.height * aspectRatio;
-                }
-                
-                const offsetX = (canvas.width - drawWidth) / 2;
-                const offsetY = (canvas.height - drawHeight) / 2;
-                
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(previewCanvas, offsetX, offsetY, drawWidth, drawHeight);
-            }
-            
-            createChannelPreview(sourceCanvas, mode) {
-                const previewCanvas = document.createElement('canvas');
-                previewCanvas.width = sourceCanvas.width;
-                previewCanvas.height = sourceCanvas.height;
-                const ctx = previewCanvas.getContext('2d');
-                
-                if (mode === 'rgba') {
-                    // Show full RGBA
-                    ctx.drawImage(sourceCanvas, 0, 0);
-                } else {
-                    // Show individual channel
-                    const sourceData = sourceCanvas.getContext('2d').getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
-                    const previewData = ctx.createImageData(sourceCanvas.width, sourceCanvas.height);
-                    
-                    const channelIndex = { 'r': 0, 'g': 1, 'b': 2, 'a': 3 }[mode];
-                    
-                    for (let i = 0; i < sourceData.data.length; i += 4) {
-                        const value = sourceData.data[i + channelIndex];
-                        
-                        if (mode === 'a') {
-                            // For alpha, show as grayscale
-                            previewData.data[i] = value;     // R
-                            previewData.data[i + 1] = value; // G
-                            previewData.data[i + 2] = value; // B
-                            previewData.data[i + 3] = 255;   // A
-                        } else {
-                            // For RGB channels, show the channel in its color
-                            previewData.data[i] = mode === 'r' ? value : 0;     // R
-                            previewData.data[i + 1] = mode === 'g' ? value : 0; // G
-                            previewData.data[i + 2] = mode === 'b' ? value : 0; // B
-                            previewData.data[i + 3] = 255;                      // A
-                        }
-                    }
-                    
-                    ctx.putImageData(previewData, 0, 0);
-                }
-                
-                return previewCanvas;
-            }
-            
-            exportChannel(nodeId, channel) {
-                const node = this.nodes.get(nodeId);
-                if (!node || !node.outputCanvas) {
-                    alert('No output to export! Connect some inputs first.');
-                    return;
-                }
-                
-                const exportCanvas = this.createChannelPreview(node.outputCanvas, channel);
-                
-                const link = document.createElement('a');
-                link.download = `packed_texture_${channel}.png`;
-                link.href = exportCanvas.toDataURL();
-                link.click();
-            }
-            
-            extractPixelValue(image, sourceChannel, x, y, targetWidth, targetHeight) {
-                // Create a cache key to avoid recreating canvases
-                const cacheKey = `${image.src}_${targetWidth}_${targetHeight}`;
-                
-                if (!this.imageCache) {
-                    this.imageCache = new Map();
-                }
-                
-                let scaledImageData;
-                if (this.imageCache.has(cacheKey)) {
-                    scaledImageData = this.imageCache.get(cacheKey);
-                } else {
-                    // Create a temporary canvas to sample from
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = targetWidth;
-                    tempCanvas.height = targetHeight;
-                    const tempCtx = tempCanvas.getContext('2d');
-                    
-                    // Draw the image scaled to target size
-                    tempCtx.drawImage(image, 0, 0, targetWidth, targetHeight);
-                    
-                    // Get all the pixel data at once
-                    scaledImageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
-                    this.imageCache.set(cacheKey, scaledImageData);
-                }
-                
-                // Calculate pixel index
-                const pixelIndex = (y * targetWidth + x) * 4;
-                const pixel = scaledImageData.data;
-                
-                // Extract the appropriate channel
-                switch (sourceChannel) {
-                    case 'r': return pixel[pixelIndex];
-                    case 'g': return pixel[pixelIndex + 1];
-                    case 'b': return pixel[pixelIndex + 2];
-                    case 'a': return pixel[pixelIndex + 3];
-                    case 'rgb': 
-                        // Luminance calculation
-                        return Math.round(0.299 * pixel[pixelIndex] + 0.587 * pixel[pixelIndex + 1] + 0.114 * pixel[pixelIndex + 2]);
-                    default: return 0;
-                }
-            }
-            
-            updateSidebarPreview(outputNode) {
-                const sidebarCanvas = document.getElementById('outputCanvas');
-                const sidebarCtx = sidebarCanvas.getContext('2d');
-                
-                if (outputNode && outputNode.outputCanvas) {
-                    sidebarCtx.clearRect(0, 0, sidebarCanvas.width, sidebarCanvas.height);
-                    sidebarCtx.drawImage(outputNode.outputCanvas, 0, 0, sidebarCanvas.width, sidebarCanvas.height);
-                    
-                    // Update size info
-                    document.getElementById('outputSize').textContent = 
-                        `${outputNode.outputCanvas.width} x ${outputNode.outputCanvas.height}`;
-                    
-                    // Enable download
-                    document.getElementById('downloadBtn').style.display = 'inline-block';
-                }
-            }
-            
-            packTexture() {
-                // Find the first output node with connections
-                let outputNode = null;
-                this.nodes.forEach(node => {
-                    if (node.type === 'output' && node.outputCanvas) {
-                        outputNode = node;
-                    }
-                });
-                
-                if (!outputNode) {
-                    alert('Please connect some inputs to an output node first!');
-                    return;
-                }
-                
-                this.updateOutputNode(outputNode);
-                
-                // Setup download
-                document.getElementById('downloadBtn').onclick = () => {
-                    if (outputNode.outputCanvas) {
-                        const link = document.createElement('a');
-                        link.download = 'packed_texture.png';
-                        link.href = outputNode.outputCanvas.toDataURL();
-                        link.click();
-                    }
-                };
-            }
-            
-            clearAll() {
-                if (confirm('Clear all nodes and connections?')) {
-                    // Clear all nodes
-                    this.nodes.forEach(node => {
-                        node.element.remove();
-                    });
-                    this.nodes.clear();
-                    
-                    // Clear all connections
-                    this.connections.clear();
-                    this.connectionSvg.innerHTML = '';
-                    
-                    // Reset counters
-                    this.nodeCounter = 0;
-                    
-                    // Clear sidebar preview
-                    const sidebarCanvas = document.getElementById('outputCanvas');
-                    const sidebarCtx = sidebarCanvas.getContext('2d');
-                    sidebarCtx.clearRect(0, 0, sidebarCanvas.width, sidebarCanvas.height);
-                    
-                    document.getElementById('outputSize').textContent = 'No output connected';
-                    document.getElementById('downloadBtn').style.display = 'none';
-                    
-                    // Create initial nodes
-                    this.createInitialNodes();
-                }
-            }
-            
-            handleRightClick(event) {
-                event.preventDefault();
-                
-                // Check if we clicked on a connection line
-                const target = event.target;
-                if (target.classList && target.classList.contains('connection-line')) {
-                    this.removeConnection(target.id);
-                    return;
-                }
-                
-                // Check if we clicked on a node (but not Image Input nodes)
-                const node = target.closest('.node');
-                if (node && node.dataset.nodeId) {
-                    const nodeData = this.nodes.get(node.dataset.nodeId);
-                    // Only allow deleting output nodes, not input nodes
-                    if (nodeData && nodeData.type === 'output') {
-                        if (confirm('Delete this output node?')) {
-                            this.deleteNode(node.dataset.nodeId);
-                        }
-                    }
-                }
-            }
-            
-            deleteNode(nodeId) {
-                const node = this.nodes.get(nodeId);
-                if (!node) return;
-                
-                // Remove all connections involving this node
-                const connectionsToRemove = [];
-                this.connections.forEach((connection, id) => {
-                    if (connection.from.nodeId === nodeId || connection.to.nodeId === nodeId) {
-                        connectionsToRemove.push(id);
-                    }
-                });
-                
-                connectionsToRemove.forEach(id => {
-                    this.removeConnection(id);
-                });
-                
-                // Remove the node element
-                node.element.remove();
-                this.nodes.delete(nodeId);
-                
-                this.updateConnectedOutputs();
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                
+                particlesContainer.appendChild(particle);
             }
         }
-        
-        // Initialize the node editor
-        document.addEventListener('DOMContentLoaded', () => {
-            new NodeEditor();
+
+        // Add subtle mouse interaction
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.tool-card');
+            const mouseX = e.clientX / window.innerWidth;
+            const mouseY = e.clientY / window.innerHeight;
+
+            cards.forEach((card, index) => {
+                const speed = (index + 1) * 0.5;
+                const x = (mouseX - 0.5) * speed;
+                const y = (mouseY - 0.5) * speed;
+                
+                card.style.transform += ` translate(${x}px, ${y}px)`;
+            });
+        });
+
+        // Initialize
+        createParticles();
+
+        // Add stagger animation to cards
+        const cards = document.querySelectorAll('.tool-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${0.2 + (index * 0.1)}s`;
         });
     </script>
 </body>
